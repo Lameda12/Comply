@@ -177,10 +177,84 @@ comply/
 
 ---
 
+---
+
+## MCP Server (Phase 2)
+
+Comply ships a built-in MCP server so Claude Desktop or Cursor can call `comply_check` directly during a conversation — no terminal needed.
+
+### What the tool does
+
+```
+comply_check(repo_path=".", config_path=".comply.yml")
+```
+
+Returns structured JSON:
+
+```json
+{
+  "results": [
+    { "id": "tests-required",       "status": "WARN", "reason": "..." },
+    { "id": "auth-security-review", "status": "PASS", "reason": "..." }
+  ],
+  "summary": {
+    "total": 4, "passed": 3, "warnings": 1, "failures": 0,
+    "verdict": "WARN"
+  }
+}
+```
+
+### Connect to Claude Desktop
+
+1. Find your config file:
+   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+2. Add this block (replace the path with your actual `comply-mcp` location):
+
+```json
+{
+  "mcpServers": {
+    "comply": {
+      "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/comply-mcp",
+      "env": {
+        "OPENROUTER_API_KEY": "sk-or-your-key-here"
+      }
+    }
+  }
+}
+```
+
+> Find your `comply-mcp` path with: `which comply-mcp`
+
+3. Restart Claude Desktop. You'll see **comply** in the tools list.
+
+4. In any conversation, ask Claude:
+   > *"Check my repo at /path/to/project for convention violations"*
+
+   Claude will call `comply_check` and show you the results inline.
+
+### Connect to Cursor
+
+Add to your `.cursor/mcp.json` or Cursor MCP settings:
+
+```json
+{
+  "comply": {
+    "command": "/Library/Frameworks/Python.framework/Versions/3.13/bin/comply-mcp",
+    "env": {
+      "OPENROUTER_API_KEY": "sk-or-your-key-here"
+    }
+  }
+}
+```
+
+---
+
 ## Roadmap
 
 - [x] Phase 1 — Core CLI (`comply init`, `comply check`)
-- [ ] Phase 2 — MCP server (use Comply from inside Claude / Cursor)
+- [x] Phase 2 — MCP server (`comply-mcp`, works in Claude Desktop + Cursor)
 - [ ] Phase 3 — Rule types: regex, AST, LLM chaining
 
 ---

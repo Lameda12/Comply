@@ -8,7 +8,7 @@
 - Output: colored PASS / WARN / FAIL checklist via Rich
 - No MCP, no web UI, no database
 
-### Phase 2 — MCP Server (not started)
+### Phase 2 — MCP Server ✅ COMPLETE (2026-03-13)
 - Expose `comply_check` as an MCP tool
 - Allow Claude/Cursor to call it mid-session
 - Return structured JSON results

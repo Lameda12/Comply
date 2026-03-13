@@ -12,10 +12,12 @@ dependencies = [
     "httpx>=0.27",
     "pyyaml>=6.0",
     "rich>=13.0",
+    "mcp[cli]>=1.0",
 ]
 
 [project.scripts]
 comply = "comply.cli:app"
+comply-mcp = "comply.mcp_server:serve"
 
 [tool.hatch.build.targets.wheel]
 packages = ["comply"]
