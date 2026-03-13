@@ -23,5 +23,15 @@
 ## Today's Target
 Complete Phase 1: working `comply check` against a real diff.
 
-## Checkpoint
-_To be filled after Phase 1 passes._
+## Checkpoint — Phase 1 complete (2026-03-13)
+
+- `comply init` writes `.comply.yml` from `templates/default.yml`
+- `comply check` reads config → gets staged/last-commit diff → calls OpenRouter LLM per rule → prints Rich table
+- `checker.py` is 59 lines (under 100 limit)
+- JSON parse errors handled gracefully (falls back to WARN with raw response)
+- Missing API key raises a clean error message (no traceback)
+- Committed: `feat: phase 1 core CLI working` (63ac2b9)
+
+**To test with a real LLM:** `export OPENROUTER_API_KEY=sk-or-... && comply check`
+
+**Phase 2 requires explicit instruction to begin.**
