@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.table import Table
 from rich import box
 
-from comply.checker import check_rule
+from comply.checker import check_all
 
 app = typer.Typer(help="Comply — enforce team conventions via LLM.", add_completion=False)
 console = Console()
@@ -22,6 +22,7 @@ STATUS_ICONS = {
     "PASS": "[green]✅ PASS[/green]",
     "WARN": "[yellow]⚠️  WARN[/yellow]",
     "FAIL": "[red]❌ FAIL[/red]",
+    "SKIP": "[dim]⏭  SKIP[/dim]",
 }
 
 
@@ -99,12 +100,11 @@ def check(
 
     results = []
     try:
-        with console.status("[dim]Consulting LLM...[/dim]"):
-            for rule in rules:
-                result = check_rule(rule, diff)
-                results.append(result)
-                icon = STATUS_ICONS.get(result["status"], result["status"])
-                table.add_row(icon, result["id"], result["reason"])
+        with console.status("[dim]Running checks...[/dim]"):
+            results = check_all(rules, diff)
+        for result in results:
+            icon = STATUS_ICONS.get(result["status"], result["status"])
+            table.add_row(icon, result["id"], result["reason"])
     except RuntimeError as e:
         console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(1)

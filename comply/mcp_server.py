@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 from mcp.server.fastmcp import FastMCP
 
-from comply.checker import check_rule
+from comply.checker import check_all
 
 mcp = FastMCP("comply")
 
@@ -60,7 +60,7 @@ def comply_check(
     if not diff.strip():
         return {"error": None, "results": [], "summary": "No diff found — nothing to check."}
 
-    results = [check_rule(rule, diff) for rule in rules]
+    results = check_all(rules, diff)
 
     failures = sum(1 for r in results if r["status"] == "FAIL")
     warnings = sum(1 for r in results if r["status"] == "WARN")

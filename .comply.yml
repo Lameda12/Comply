@@ -1,5 +1,9 @@
 rules:
+  # ── LLM rules ────────────────────────────────────────────────────────────
+  # type: llm (default) — sends diff + prompt to an LLM, returns PASS/WARN/FAIL
+
   - id: tests-required
+    type: llm
     description: Every new .py source file must have a corresponding test file
     prompt: |
       Look at the diff. If any new Python source files are added (not in tests/ or test_*.py),
@@ -7,24 +11,26 @@ rules:
       If all new source files have tests, return PASS.
       If some are missing tests, return WARN with the file names.
 
-  - id: auth-security-review
-    description: Changes to auth/ or login paths need a security review comment
-    prompt: |
-      Look at the diff. If any files under auth/, login.py, or any file with "auth" or "login"
-      in its path are modified, return WARN recommending a security review.
-      Otherwise return PASS.
-
-  - id: migration-docs
-    description: New database migrations must include a rollback plan in comments
+  - id: migration-exists
+    type: llm
+    description: Detect if any new migration files are present in the diff
     prompt: |
       Look at the diff. If any new migration files are added (e.g. migrations/*.py,
-      **/migrations/*.sql, alembic/versions/*.py), check whether the migration file
-      contains a "rollback" or "downgrade" comment or function.
-      If no migrations are added, return PASS.
-      If migrations exist but have no rollback, return FAIL.
-      If migrations exist and have rollback, return PASS.
+      alembic/versions/*.py, **/migrations/*.sql), return WARN listing the files.
+      If no migration files are added, return PASS.
+
+  - id: migration-rollback
+    type: llm
+    depends_on: migration-exists   # only runs if migration-exists returned WARN/FAIL
+    description: New migrations must include a rollback/downgrade plan
+    prompt: |
+      Look at the diff for migration files. Check whether each migration contains
+      a "rollback", "downgrade", or "revert" function or comment block.
+      If all migrations have rollback coverage, return PASS.
+      If any are missing, return FAIL naming the files.
 
   - id: env-vars-documented
+    type: llm
     description: New environment variables must be documented in .env.example
     prompt: |
       Look at the diff. If any new os.environ.get() or os.getenv() calls introduce
@@ -33,3 +39,43 @@ rules:
       If no new env vars are introduced, return PASS.
       If new env vars are introduced but not documented, return WARN with the var names.
       If all new env vars are documented, return PASS.
+
+  # ── Regex rules ───────────────────────────────────────────────────────────
+  # type: regex — instant pattern match on the diff, no LLM call
+  # on_match: status when pattern found  (default: FAIL)
+  # on_no_match: status when not found   (default: PASS)
+
+  - id: no-print-statements
+    type: regex
+    description: No print() calls in production code (use logging)
+    pattern: '^\+(?!.*test).*\bprint\s*\('
+    on_match: WARN
+    on_no_match: PASS
+
+  - id: no-hardcoded-secrets
+    type: regex
+    description: No hardcoded passwords, tokens, or API keys
+    pattern: '^\+.*(password|secret|api_key|token)\s*=\s*["\''][^"'']{4,}["\'']'
+    on_match: FAIL
+    on_no_match: PASS
+
+  - id: no-todo-in-new-code
+    type: regex
+    description: New lines should not introduce TODO/FIXME comments
+    pattern: '^\+.*\b(TODO|FIXME|HACK|XXX)\b'
+    on_match: WARN
+    on_no_match: PASS
+
+  # ── AST rules ─────────────────────────────────────────────────────────────
+  # type: ast — parses changed Python files statically, no LLM call
+  # check: one of: docstrings | type-hints | no-bare-except | no-globals
+
+  - id: functions-need-docstrings
+    type: ast
+    description: All new functions and classes must have docstrings
+    check: docstrings
+
+  - id: no-bare-except
+    type: ast
+    description: No bare except clauses — always catch a specific exception
+    check: no-bare-except
