@@ -20,6 +20,7 @@ Do not include any explanation outside the JSON object.
 
 
 def call_llm(system: str, user: str) -> str:
+    """Send a chat completion request to OpenRouter and return the raw response text."""
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError(
@@ -43,6 +44,7 @@ def call_llm(system: str, user: str) -> str:
 
 
 def run(rule: dict, diff: str) -> dict:
+    """Evaluate a rule against a diff using the LLM. Returns {status, reason}."""
     user_prompt = (
         f"Rule: {rule['description']}\n\n"
         f"Instructions:\n{rule['prompt'].strip()}\n\n"

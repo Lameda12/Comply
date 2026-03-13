@@ -51,7 +51,7 @@ def get_diff() -> str:
 
 
 @app.command()
-def init():
+def init() -> None:
     """Write a default .comply.yml to the current directory."""
     target = Path(CONFIG_FILE)
     if target.exists():
@@ -70,7 +70,7 @@ def init():
 @app.command()
 def check(
     config: Path = typer.Option(Path(CONFIG_FILE), "--config", "-c", help="Path to .comply.yml"),
-):
+) -> None:
     """Check the current git diff against rules in .comply.yml."""
     if not config.exists():
         console.print(

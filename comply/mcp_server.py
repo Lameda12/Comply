@@ -12,6 +12,7 @@ mcp = FastMCP("comply")
 
 
 def _get_diff(repo_path: str) -> str:
+    """Return the current git diff for a repo: staged, last commit, or unstaged."""
     kwargs = dict(capture_output=True, text=True, cwd=repo_path)
     staged = subprocess.run(["git", "diff", "--cached"], **kwargs)
     if staged.stdout.strip():
@@ -24,6 +25,7 @@ def _get_diff(repo_path: str) -> str:
 
 
 def _load_rules(config_path: str) -> list[dict]:
+    """Parse a .comply.yml file and return the list of rule dicts."""
     with open(config_path) as f:
         cfg = yaml.safe_load(f)
     return cfg.get("rules", [])
@@ -79,5 +81,6 @@ def comply_check(
     }
 
 
-def serve():
+def serve() -> None:
+    """Start the MCP server (entrypoint for comply-mcp command)."""
     mcp.run()

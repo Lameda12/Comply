@@ -11,6 +11,7 @@ def _changed_py_files(diff: str) -> list[str]:
 
 
 def _check_docstrings(tree: ast.Module, path: str) -> list[str]:
+    """Return issues for any function/class definitions missing a docstring."""
     issues = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
@@ -22,6 +23,7 @@ def _check_docstrings(tree: ast.Module, path: str) -> list[str]:
 
 
 def _check_type_hints(tree: ast.Module, path: str) -> list[str]:
+    """Return issues for any function definitions missing parameter or return type annotations."""
     issues = []
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -35,6 +37,7 @@ def _check_type_hints(tree: ast.Module, path: str) -> list[str]:
 
 
 def _check_no_bare_except(tree: ast.Module, path: str) -> list[str]:
+    """Return issues for any bare except: handlers that catch all exceptions."""
     issues = []
     for node in ast.walk(tree):
         if isinstance(node, ast.ExceptHandler) and node.type is None:
@@ -43,6 +46,7 @@ def _check_no_bare_except(tree: ast.Module, path: str) -> list[str]:
 
 
 def _check_no_globals(tree: ast.Module, path: str) -> list[str]:
+    """Return issues for any global statements found in the module."""
     issues = []
     for node in ast.walk(tree):
         if isinstance(node, ast.Global):
