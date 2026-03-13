@@ -94,11 +94,14 @@ That's it.
 
 ## Writing rules
 
-Rules live in `.comply.yml`. Each rule has three fields:
+Rules live in `.comply.yml`. There are three rule types:
+
+### `llm` — plain-English instructions (default)
 
 ```yaml
 rules:
   - id: tests-required
+    type: llm
     description: Every new Python file needs a test file
     prompt: |
       Look at the diff. If any new .py source files are added
@@ -109,22 +112,79 @@ rules:
 
 | Field | What it does |
 |---|---|
-| `id` | Short name shown in the output |
+| `id` | Short name shown in output |
 | `description` | Human-readable summary |
 | `prompt` | Plain-English instruction sent to the LLM |
 
-The LLM must return `PASS`, `WARN`, or `FAIL` with a reason. If it returns garbage, Comply falls back to `WARN` and shows the raw response.
+---
+
+### `regex` — instant pattern matching, no LLM call
+
+```yaml
+  - id: no-print-statements
+    type: regex
+    description: No print() calls in production code
+    pattern: '^\+.*\bprint\s*\('
+    on_match: WARN       # status when pattern is found  (default: FAIL)
+    on_no_match: PASS    # status when not found         (default: PASS)
+```
+
+Fast and free — runs entirely locally against the raw diff text.
+
+---
+
+### `ast` — Python static analysis, no LLM call
+
+```yaml
+  - id: no-bare-except
+    type: ast
+    description: No bare except clauses
+    check: no-bare-except
+```
+
+Parses changed Python files with Python's built-in `ast` module.
+
+| `check` value | What it enforces |
+|---|---|
+| `docstrings` | All new functions/classes have docstrings |
+| `type-hints` | All new functions have type annotations |
+| `no-bare-except` | No bare `except:` — must catch a specific exception |
+| `no-globals` | No `global` statements |
+
+---
+
+### `depends_on` — rule chaining
+
+```yaml
+  - id: migration-exists
+    type: llm
+    prompt: "Return WARN if any migration files are added, else PASS."
+    ...
+
+  - id: migration-rollback
+    type: llm
+    depends_on: migration-exists   # ← only runs if migration-exists returned WARN/FAIL
+    prompt: "Check that migrations have a downgrade() function."
+    ...
+```
+
+If the dependency returned `PASS`, the dependent rule shows `SKIP` in output. This avoids false positives when there's nothing to check.
 
 ---
 
 ## Starter rules (from `comply init`)
 
-| Rule | What it checks |
-|---|---|
-| `tests-required` | New source files have matching test files |
-| `auth-security-review` | Changes to auth/login paths get flagged |
-| `migration-docs` | New DB migrations include a rollback/downgrade |
-| `env-vars-documented` | New env vars appear in `.env.example` |
+| Rule | Type | What it checks |
+|---|---|---|
+| `tests-required` | llm | New source files have matching test files |
+| `migration-exists` | llm | Detects new migration files |
+| `migration-rollback` | llm | Checks rollback — skipped if no migrations found |
+| `env-vars-documented` | llm | New env vars appear in `.env.example` |
+| `no-print-statements` | regex | No `print()` calls in production code |
+| `no-hardcoded-secrets` | regex | No hardcoded passwords/tokens |
+| `no-todo-in-new-code` | regex | No new TODO/FIXME comments |
+| `functions-need-docstrings` | ast | All new functions/classes have docstrings |
+| `no-bare-except` | ast | No bare `except:` handlers |
 
 ---
 
@@ -255,7 +315,7 @@ Add to your `.cursor/mcp.json` or Cursor MCP settings:
 
 - [x] Phase 1 — Core CLI (`comply init`, `comply check`)
 - [x] Phase 2 — MCP server (`comply-mcp`, works in Claude Desktop + Cursor)
-- [ ] Phase 3 — Rule types: regex, AST, LLM chaining
+- [x] Phase 3 — Rule types: `llm`, `regex`, `ast` + `depends_on` chaining
 
 ---
 

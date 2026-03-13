@@ -13,7 +13,7 @@
 - Allow Claude/Cursor to call it mid-session
 - Return structured JSON results
 
-### Phase 3 — Advanced Rules (not started)
+### Phase 3 — Advanced Rules ✅ COMPLETE (2026-03-13)
 - Rule types: regex, ast, llm
 - Rule chaining / dependencies
 - Custom prompts per rule
