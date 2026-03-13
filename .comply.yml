@@ -1,0 +1,35 @@
+rules:
+  - id: tests-required
+    description: Every new .py source file must have a corresponding test file
+    prompt: |
+      Look at the diff. If any new Python source files are added (not in tests/ or test_*.py),
+      check whether a corresponding test file also appears in the diff.
+      If all new source files have tests, return PASS.
+      If some are missing tests, return WARN with the file names.
+
+  - id: auth-security-review
+    description: Changes to auth/ or login paths need a security review comment
+    prompt: |
+      Look at the diff. If any files under auth/, login.py, or any file with "auth" or "login"
+      in its path are modified, return WARN recommending a security review.
+      Otherwise return PASS.
+
+  - id: migration-docs
+    description: New database migrations must include a rollback plan in comments
+    prompt: |
+      Look at the diff. If any new migration files are added (e.g. migrations/*.py,
+      **/migrations/*.sql, alembic/versions/*.py), check whether the migration file
+      contains a "rollback" or "downgrade" comment or function.
+      If no migrations are added, return PASS.
+      If migrations exist but have no rollback, return FAIL.
+      If migrations exist and have rollback, return PASS.
+
+  - id: env-vars-documented
+    description: New environment variables must be documented in .env.example
+    prompt: |
+      Look at the diff. If any new os.environ.get() or os.getenv() calls introduce
+      new environment variable names, check whether those same names also appear
+      as additions in .env.example within the diff.
+      If no new env vars are introduced, return PASS.
+      If new env vars are introduced but not documented, return WARN with the var names.
+      If all new env vars are documented, return PASS.
