@@ -46,8 +46,8 @@ def call_llm(system: str, user: str) -> str:
 def run(rule: dict, diff: str) -> dict:
     """Evaluate a rule against a diff using the LLM. Returns {status, reason}."""
     user_prompt = (
-        f"Rule: {rule['description']}\n\n"
-        f"Instructions:\n{rule['prompt'].strip()}\n\n"
+        f"Rule: {rule.get('description', rule.get('id', 'no description'))}\n\n"
+        f"Instructions:\n{rule.get('prompt', rule.get('message', '')).strip()}\n\n"
         f"Git diff:\n```\n{diff}\n```"
     )
     raw = call_llm(SYSTEM_PROMPT, user_prompt)

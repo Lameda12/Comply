@@ -15,6 +15,13 @@ dependencies = [
     "mcp[cli]>=1.0",
 ]
 
+[project.optional-dependencies]
+webhook = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "PyJWT[crypto]>=2.8",
+]
+
 [project.scripts]
 comply = "comply.cli:app"
 comply-mcp = "comply.mcp_server:serve"
