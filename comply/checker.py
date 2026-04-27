@@ -19,7 +19,10 @@ def check_rule(rule: dict, diff: str) -> dict:
             "status": "WARN",
             "reason": f"Unknown rule type '{rule_type}'. Valid: {', '.join(RUNNERS)}",
         }
-    result = runner(rule, diff)
+    try:
+        result = runner(rule, diff)
+    except Exception as exc:
+        result = {"status": "WARN", "reason": f"Rule runner error: {exc}"}
     return {"id": rule["id"], **result}
 
 
