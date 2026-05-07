@@ -128,3 +128,44 @@ def check(
         raise typer.Exit(1)
     else:
         console.print("[green]All checks passed.[/green]\n")
+
+
+rules_app = typer.Typer(help="Manage rules.", add_completion=False)
+app.add_typer(rules_app, name="rules")
+
+
+@rules_app.command("list")
+def rules_list(
+    config: Path = typer.Option(Path(CONFIG_FILE), "--config", "-c", help="Path to .comply.yml"),
+) -> None:
+    """List all rules defined in .comply.yml."""
+    if not config.exists():
+        console.print(
+            f"[red]No {CONFIG_FILE} found.[/red] Run [bold]comply init[/bold] first."
+        )
+        raise typer.Exit(1)
+
+    with open(config) as f:
+        cfg = yaml.safe_load(f)
+
+    rules = cfg.get("rules", [])
+    if not rules:
+        console.print("[yellow]No rules defined in .comply.yml[/yellow]")
+        raise typer.Exit(0)
+
+    table = Table(box=box.SIMPLE, show_header=True, padding=(0, 1))
+    table.add_column("ID", style="bold cyan")
+    table.add_column("Type", style="dim")
+    table.add_column("Description")
+    table.add_column("Depends On", style="dim")
+
+    for rule in rules:
+        table.add_row(
+            rule.get("id", ""),
+            rule.get("type", "llm"),
+            rule.get("description", ""),
+            rule.get("depends_on", ""),
+        )
+
+    console.print(f"\n[bold]{len(rules)}[/bold] rules in [bold]{config}[/bold]\n")
+    console.print(table)

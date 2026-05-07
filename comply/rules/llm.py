@@ -1,4 +1,4 @@
-"""LLM-based rule evaluation — supports OpenRouter, Anthropic, OpenAI, and Google."""
+"""LLM-based rule evaluation — supports Groq, Anthropic, OpenAI, and Google."""
 
 import json
 import os
@@ -20,19 +20,19 @@ Do not include any explanation outside the JSON object.
 """
 
 _DEFAULT_MODELS = {
-    "openrouter": "qwen/qwen-2.5-72b-instruct",
+    "groq": "llama-3.3-70b-versatile",
     "anthropic": "claude-sonnet-4-6",
     "openai": "gpt-4o",
     "google": "gemini-2.0-flash",
 }
 
 
-def _call_openrouter(system: str, user: str, model: str) -> str:
-    api_key = os.environ.get("OPENROUTER_API_KEY")
+def _call_groq(system: str, user: str, model: str) -> str:
+    api_key = os.environ.get("GROQ_API_KEY")
     if not api_key:
-        raise RuntimeError("OPENROUTER_API_KEY is not set.")
+        raise RuntimeError("GROQ_API_KEY is not set.")
     resp = httpx.post(
-        "https://openrouter.ai/api/v1/chat/completions",
+        "https://api.groq.com/openai/v1/chat/completions",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "model": model,
@@ -105,7 +105,7 @@ def _call_google(system: str, user: str, model: str) -> str:
 
 
 _PROVIDERS = {
-    "openrouter": _call_openrouter,
+    "groq": _call_groq,
     "anthropic": _call_anthropic,
     "openai": _call_openai,
     "google": _call_google,
@@ -114,7 +114,7 @@ _PROVIDERS = {
 
 def call_llm(system: str, user: str) -> str:
     """Dispatch to the configured LLM provider and return raw response text."""
-    provider = os.environ.get("COMPLY_PROVIDER", "openrouter").lower()
+    provider = os.environ.get("COMPLY_PROVIDER", "groq").lower()
     if provider not in _PROVIDERS:
         raise RuntimeError(
             f"Unknown COMPLY_PROVIDER '{provider}'. "
